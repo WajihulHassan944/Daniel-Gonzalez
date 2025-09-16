@@ -1,0 +1,614 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Daniel — Banner CMS</title>
+
+  <style>
+    :root{
+      --bg: #ffe9d9;
+      --accent: #fcbf49;
+      --dark: #0b0b0b;
+      --muted: #6b6b6b;
+      --card: white;
+      --radius: 12px;
+      --gap: 14px;
+      --input-h: 44px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+
+    html,body{
+      height:100%;
+      margin:0;
+      background: linear-gradient(180deg, var(--bg) 0%, #fff9f2 100%);
+      color:var(--dark);
+    }
+
+    .wrap{
+      max-width:1000px;
+      margin:28px auto;
+      padding:20px;
+      display:grid;
+      grid-template-columns: 1fr 360px;
+      gap:24px;
+    }
+
+    /* responsive */
+    @media (max-width: 880px){
+      .wrap{ grid-template-columns:1fr; padding:12px; }
+    }
+
+    .card{
+      background:var(--card);
+      border-radius:var(--radius);
+      box-shadow: 0 6px 20px rgba(11,11,11,0.06);
+      padding:18px;
+    }
+
+    header.app-header{
+      display:flex;
+      align-items:center;
+      gap:14px;
+      margin-bottom:12px;
+    }
+
+    .logo-mark{
+      width:44px;height:44px;border-radius:10px;background:linear-gradient(180deg,var(--accent),#ffab33);
+      display:grid;place-items:center;color:var(--dark);font-weight:700;
+      box-shadow: 0 4px 10px rgba(252,191,73,0.25);
+    }
+
+    h1{
+      font-size:20px;margin:0;
+    }
+
+    .muted{
+      color:var(--muted);font-size:13px;margin-top:6px;
+    }
+
+    form .row{ display:flex; gap:var(--gap); margin-bottom:12px; align-items:center; }
+    form .col{ flex:1; min-width:0; display:flex; flex-direction:column; gap:8px; }
+
+    label{ font-weight:600; font-size:13px; color:var(--dark); }
+    input[type="text"], input[type="url"], textarea{
+      height:var(--input-h);
+      border:1px solid #ede7df;
+      padding:10px 12px;
+      border-radius:8px;
+      font-size:14px;
+      outline: none;
+    }
+    textarea{ min-height:100px; resize:vertical; padding-top:10px; height:auto; }
+
+    .file-input{
+      display:flex;gap:10px; align-items:center;
+    }
+
+    .file-input input[type="file"]{
+      display:block;
+    }
+
+    .preview{
+      display:flex; gap:12px; align-items:center; flex-wrap:wrap;
+    }
+
+    .thumb{
+      width:84px;height:84px;border-radius:10px;object-fit:cover;border:1px solid #eee;
+      background:linear-gradient(180deg,#fff,#faf7f3);
+    }
+
+    .resume-pill{
+      background:#f5f3ee;border-radius:8px;padding:8px 12px;font-size:13px;display:inline-flex;gap:10px;align-items:center;border:1px solid #eee;
+    }
+
+    .actions{
+      display:flex; gap:10px; justify-content:flex-end; margin-top:8px;
+    }
+
+    .btn{
+      border:0;padding:10px 14px;border-radius:10px;font-weight:700;cursor:pointer;
+      display:inline-flex;gap:8px;align-items:center;
+    }
+
+    .btn-primary{
+      background:var(--dark); color:white;
+    }
+    .btn-accent{
+      background:var(--accent); color:var(--dark);
+      box-shadow: 0 4px 12px rgba(252,191,73,0.22);
+    }
+    .btn-ghost{
+      background:transparent;border:1px solid #e6ded6;color:var(--dark);
+    }
+    .danger{ background:#ff6b6b;color:white; }
+
+    .side {
+      display:flex;flex-direction:column;gap:12px;
+      position:sticky; top:20px;
+      align-self:start;
+    }
+
+    .meta {
+      display:flex; gap:10px; align-items:center;
+    }
+
+    .big-preview{
+      border-radius:12px; padding:12px; background:linear-gradient(180deg,#fff,#fff7f0);
+      display:flex; gap:12px; align-items:center;
+    }
+    .big-preview .left{
+      width:120px;height:120px;border-radius:10px;border:1px solid #f1e3d8; overflow:hidden;
+      display:grid;place-items:center;background: #fff;
+    }
+    .big-preview .right{ flex:1; }
+
+    .field-note{ font-size:12px;color:var(--muted); margin-top:6px; }
+
+    .toast{
+      position:fixed; right:20px; bottom:20px; background:#0b0b0b;color:#fff;padding:12px 18px;border-radius:10px; box-shadow:0 6px 20px rgba(0,0,0,0.14);
+      transform-origin: bottom right; opacity:0; pointer-events:none; transition:all .18s ease;
+    }
+    .toast.show{ opacity:1; transform:translateY(-6px); pointer-events:auto; }
+
+    .loader{
+      width:18px;height:18px;border-radius:50%; border:3px solid rgba(255,255,255,0.2); border-top-color: rgba(255,255,255,0.95); animation:spin .9s linear infinite;
+      display:inline-block;
+    }
+    @keyframes spin{ to { transform:rotate(360deg); } }
+
+    .small-muted{ font-size:13px;color:var(--muted); }
+    .link{ color:var(--dark); font-weight:700; text-decoration:underline; }
+
+    /* subtle inputs and mobile spacing */
+    @media (max-width:420px){
+      .thumb{ width:64px;height:64px; }
+      .big-preview .left{ width:96px; height:96px; }
+    }
+
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <!-- MAIN FORM -->
+    <div class="card">
+      <header class="app-header">
+        <div class="logo-mark">D</div>
+        <div>
+          <h1>Daniel — Banner Editor</h1>
+          <div class="muted">Edit the website banner — logo, profile image, description, resume, and link.</div>
+        </div>
+      </header>
+
+      <form id="bannerForm" class="cms-form" autocomplete="off">
+        <div class="row">
+          <div class="col">
+            <label for="name">Name</label>
+            <input id="name" name="name" type="text" placeholder="Daniel Smith" required />
+          </div>
+          <div class="col">
+            <label for="linkedUrl">Linked URL</label>
+            <input id="linkedUrl" name="linkedUrl" type="url" placeholder="https://linkedin.com/in/daniel" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col">
+            <label for="description">Main Description</label>
+            <input id="description" name="description" type="text" placeholder='Outbound SDR | AI Prospecting' required />
+            <div class="field-note">This appears as the large headline description.</div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col">
+            <label for="subDescription">Sub Description</label>
+            <input id="subDescription" name="subDescription" type="text" placeholder="Relocating to Dublin" />
+            <div class="field-note">Optional — e.g. location, availability, etc.</div>
+          </div>
+        </div>
+
+        <hr style="border:none;height:12px" />
+
+        <div class="row">
+          <div class="col">
+            <label>Logo (square)</label>
+            <div class="file-input">
+              <input id="logoInput" name="logo" type="file" accept="image/*" />
+              <div id="logoPreview" class="preview"></div>
+            </div>
+            <div class="field-note">Recommended 400x400 PNG/SVG. Uploading a new logo will replace the old one on submit.</div>
+          </div>
+
+          <div class="col">
+            <label>Profile Image</label>
+            <div class="file-input">
+              <input id="profileInput" name="profileImage" type="file" accept="image/*" />
+              <div id="profilePreview" class="preview"></div>
+            </div>
+            <div class="field-note">Recommended 600x600 or similar. Will be used on the banner.</div>
+          </div>
+        </div>
+
+        <div style="margin-top:14px">
+          <label>Resume (PDF)</label>
+          <div style="display:flex;gap:12px;align-items:center;">
+            <input id="resumeInput" type="file" accept="application/pdf" />
+            <div id="resumeMeta" class="small-muted">No resume uploaded</div>
+          </div>
+          <div class="field-note">Upload a PDF resume. Uploading new file replaces previous one on save.</div>
+        </div>
+
+        <div class="actions">
+          <button type="button" id="btnDelete" class="btn btn-ghost" title="Delete current banner">Delete</button>
+          <button type="reset" class="btn btn-ghost">Reset</button>
+          <button type="submit" id="btnSave" class="btn btn-primary">
+            <span id="btnSaveText">Save / Overwrite</span>
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- RIGHT - Preview & Info -->
+    <aside class="side">
+      <div class="card">
+        <div style="display:flex;gap:12px;align-items:center;justify-content:space-between;">
+          <div>
+            <div class="small-muted">Live preview</div>
+            <div style="font-weight:800;font-size:18px;margin-top:6px">Banner preview</div>
+          </div>
+          <div class="meta">
+            <div class="small-muted">Backend:</div>
+            <div style="font-weight:700;font-size:13px;margin-left:6px">blogs-admin-editor.vercel.app</div>
+          </div>
+        </div>
+
+        <div style="height:12px"></div>
+
+        <div id="livePreview" class="big-preview">
+          <div class="left">
+            <img id="liveProfileImg" src="" alt="profile" style="width:100%;height:100%;object-fit:cover" />
+          </div>
+          <div class="right">
+            <div id="liveName" style="font-weight:800;font-size:16px;"></div>
+            <div id="liveDesc" style="font-weight:700;margin-top:4px;"></div>
+            <div id="liveSubDesc" class="small-muted" style="margin-top:8px;"></div>
+            <div style="margin-top:10px;">
+              <a id="liveLink" class="link" href="#" target="_blank" rel="noopener" style="display:none">Visit link</a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div>
+            <div class="small-muted">Resume</div>
+            <div style="font-weight:700;margin-top:6px">Uploaded resume</div>
+          </div>
+          <div id="resumeAction" style="display:flex;gap:8px;align-items:center"></div>
+        </div>
+
+        <div style="height:12px"></div>
+
+        <div id="currentFiles" style="display:flex;gap:10px;flex-direction:column">
+          <!-- filled dynamically -->
+        </div>
+
+      </div>
+
+      <div class="card" style="text-align:center;">
+        <div style="font-size:13px;font-weight:700">Colors</div>
+        <div style="display:flex;justify-content:center;gap:12px;margin-top:10px;">
+          <div style="width:48px;height:48px;border-radius:8px;background:var(--bg);border:1px solid #fff;"></div>
+          <div style="width:48px;height:48px;border-radius:8px;background:var(--accent);border:1px solid #fff;"></div>
+          <div style="width:48px;height:48px;border-radius:8px;background:var(--dark);"></div>
+        </div>
+        <div class="muted" style="margin-top:10px">Background / Accent / Dark</div>
+      </div>
+    </aside>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite">Saved</div>
+
+  <script>
+    (function(){
+      // ===== CONFIG =====
+      const BASE_URL = "https://blogs-admin-editor.vercel.app";
+      const ENDPOINT = BASE_URL + "/daniel/banner";
+
+      // elements
+      const form = document.getElementById("bannerForm");
+      const nameInput = document.getElementById("name");
+      const descInput = document.getElementById("description");
+      const subDescInput = document.getElementById("subDescription");
+      const linkInput = document.getElementById("linkedUrl");
+
+      const logoInput = document.getElementById("logoInput");
+      const profileInput = document.getElementById("profileInput");
+      const resumeInput = document.getElementById("resumeInput");
+
+      const logoPreview = document.getElementById("logoPreview");
+      const profilePreview = document.getElementById("profilePreview");
+      const resumeMeta = document.getElementById("resumeMeta");
+
+      const liveName = document.getElementById("liveName");
+      const liveDesc = document.getElementById("liveDesc");
+      const liveSubDesc = document.getElementById("liveSubDesc");
+      const liveLink = document.getElementById("liveLink");
+      const liveProfileImg = document.getElementById("liveProfileImg");
+
+      const currentFiles = document.getElementById("currentFiles");
+      const resumeAction = document.getElementById("resumeAction");
+
+      const btnSave = document.getElementById("btnSave");
+      const btnSaveText = document.getElementById("btnSaveText");
+      const btnDelete = document.getElementById("btnDelete");
+
+      const toast = document.getElementById("toast");
+
+      // state
+      let currentBanner = null; // stores the object returned by backend
+      let uploading = false;
+
+      // ===== UTIL =====
+      function showToast(text = "Saved", ms = 2500) {
+        toast.textContent = text;
+        toast.classList.add("show");
+        setTimeout(()=> toast.classList.remove("show"), ms);
+      }
+
+      function setLoading(state, text) {
+        uploading = state;
+        if (state) {
+          btnSave.disabled = true;
+          btnSave.classList.add("btn-accent");
+          btnSaveText.innerHTML = '<span class="loader" style="margin-right:8px"></span>Saving...';
+        } else {
+          btnSave.disabled = false;
+          btnSave.classList.remove("btn-accent");
+          btnSaveText.textContent = text || "Save / Overwrite";
+        }
+      }
+
+      // read file to preview (images)
+      function renderImagePreview(file, container) {
+        container.innerHTML = "";
+        const img = document.createElement("img");
+        img.className = "thumb";
+        container.appendChild(img);
+
+        const reader = new FileReader();
+        reader.onload = e => {
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+
+      // show existing image url
+      function renderUrlPreview(url, container) {
+        container.innerHTML = "";
+        if (!url) return;
+        const img = document.createElement("img");
+        img.className = "thumb";
+        img.src = url;
+        img.alt = "preview";
+        container.appendChild(img);
+      }
+
+      function clearPreviews() {
+        logoPreview.innerHTML = "";
+        profilePreview.innerHTML = "";
+        resumeMeta.textContent = "No resume uploaded";
+      }
+
+      // populate live preview from currentBanner or inputs
+      function refreshLivePreview() {
+        const nameVal = nameInput.value || (currentBanner && currentBanner.name) || "—";
+        const descVal = descInput.value || (currentBanner && currentBanner.description) || "";
+        const subVal = subDescInput.value || (currentBanner && currentBanner.subDescription) || "";
+        const linkVal = linkInput.value || (currentBanner && currentBanner.linkedUrl) || "";
+
+        liveName.textContent = nameVal;
+        liveDesc.textContent = descVal;
+        liveSubDesc.textContent = subVal;
+
+        if (linkVal) {
+          liveLink.style.display = "inline";
+          liveLink.href = linkVal;
+          liveLink.textContent = "Open link";
+        } else {
+          liveLink.style.display = "none";
+        }
+
+        // profile image priority: local selected file preview -> existing banner url -> placeholder
+        if (profileInput.files && profileInput.files[0]) {
+          const file = profileInput.files[0];
+          const reader = new FileReader();
+          reader.onload = e => liveProfileImg.src = e.target.result;
+          reader.readAsDataURL(file);
+        } else if (currentBanner && currentBanner.profileImage && currentBanner.profileImage.url) {
+          liveProfileImg.src = currentBanner.profileImage.url;
+        } else {
+          liveProfileImg.src = "data:image/svg+xml;utf8," + encodeURIComponent(
+            `<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><rect width='100%' height='100%' fill='#f3e6db'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='#b5a08a' font-size='20'>No Image</text></svg>`
+          );
+        }
+      }
+
+      // ===== LOAD CURRENT BANNER =====
+      async function loadBanner() {
+        try {
+          const res = await fetch(ENDPOINT, { cache: "no-cache" });
+          if (!res.ok && res.status !== 404) {
+            throw new Error("Failed to fetch banner: " + res.status);
+          }
+          if (res.status === 404) {
+            currentBanner = null;
+            clearPreviews();
+            refreshLivePreview();
+            currentFiles.innerHTML = "<div class='small-muted'>No banner found in backend.</div>";
+            return;
+          }
+          const data = await res.json();
+          currentBanner = data;
+
+          // populate form fields from backend (but keep empty if null)
+          nameInput.value = data.name || "";
+          descInput.value = data.description || "";
+          subDescInput.value = data.subDescription || "";
+          linkInput.value = data.linkedUrl || "";
+
+          // existing previews
+          if (data.logo && data.logo.url) renderUrlPreview(data.logo.url, logoPreview);
+          if (data.profileImage && data.profileImage.url) renderUrlPreview(data.profileImage.url, profilePreview);
+
+          if (data.resumePdf && data.resumePdf.url) {
+            resumeMeta.innerHTML = "";
+            const pill = document.createElement("div");
+            pill.className = "resume-pill";
+            const a = document.createElement("a");
+            a.href = data.resumePdf.url;
+            a.target = "_blank";
+            a.rel = "noopener";
+            a.textContent = "Open resume";
+            pill.appendChild(a);
+            resumeMeta.appendChild(pill);
+
+            currentFiles.innerHTML = `
+              <div class="small-muted">Logo: ${data.logo?.publicId ? data.logo.publicId : "—"}</div>
+              <div class="small-muted">Profile: ${data.profileImage?.publicId ? data.profileImage.publicId : "—"}</div>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <div class="small-muted">Resume:</div>
+                <a class="link" href="${data.resumePdf.url}" target="_blank">Download</a>
+              </div>
+            `;
+            resumeAction.innerHTML = `<button id="openResumeBtn" class="btn btn-ghost">Open</button>`;
+            document.getElementById("openResumeBtn").addEventListener("click", ()=> window.open(data.resumePdf.url, "_blank"));
+          } else {
+            resumeMeta.textContent = "No resume uploaded";
+            currentFiles.innerHTML = `
+              <div class="small-muted">Logo: ${data.logo?.publicId ? data.logo.publicId : "—"}</div>
+              <div class="small-muted">Profile: ${data.profileImage?.publicId ? data.profileImage.publicId : "—"}</div>
+              <div class="small-muted">Resume: —</div>
+            `;
+            resumeAction.innerHTML = "";
+          }
+
+          refreshLivePreview();
+        } catch (err) {
+          console.error(err);
+          showToast("Could not load banner");
+        }
+      }
+
+      // ===== Handle file input changes for preview & live preview update =====
+      logoInput.addEventListener("change", (e) => {
+        const f = e.target.files[0];
+        if (!f) { logoPreview.innerHTML = ""; return; }
+        renderImagePreview(f, logoPreview);
+      });
+
+      profileInput.addEventListener("change", (e) => {
+        const f = e.target.files[0];
+        if (!f) { profilePreview.innerHTML = ""; return; }
+        renderImagePreview(f, profilePreview);
+        refreshLivePreview();
+      });
+
+      resumeInput.addEventListener("change", (e) => {
+        const f = e.target.files[0];
+        if (!f) { resumeMeta.textContent = "No resume uploaded"; return; }
+        resumeMeta.innerHTML = `<div class="resume-pill">${f.name} — ${Math.round(f.size/1024)} KB</div>`;
+      });
+
+      // live preview update when typing
+      [nameInput, descInput, subDescInput, linkInput].forEach(el=>{
+        el.addEventListener("input", refreshLivePreview);
+      });
+
+      // ===== SUBMIT (Overwrite) =====
+      form.addEventListener("submit", async (ev) => {
+        ev.preventDefault();
+        if (uploading) return;
+        setLoading(true);
+
+        try {
+          // prepare formdata
+          const fd = new FormData();
+          fd.append("name", nameInput.value || "");
+          fd.append("description", descInput.value || "");
+          fd.append("subDescription", subDescInput.value || "");
+          fd.append("linkedUrl", linkInput.value || "");
+
+          if (logoInput.files && logoInput.files[0]) fd.append("logo", logoInput.files[0]);
+          if (profileInput.files && profileInput.files[0]) fd.append("profileImage", profileInput.files[0]);
+          if (resumeInput.files && resumeInput.files[0]) fd.append("resumePdf", resumeInput.files[0]);
+
+          const res = await fetch(ENDPOINT, {
+            method: "POST",
+            body: fd,
+          });
+
+          if (!res.ok) {
+            const text = await res.text().catch(()=>null);
+            throw new Error("Save failed: " + res.status + " " + (text || ""));
+          }
+
+          const data = await res.json();
+          currentBanner = data;
+          await loadBanner(); // refresh so we show correct publicIds and urls
+          showToast("Banner saved");
+        } catch (err) {
+          console.error(err);
+          showToast("Save failed: " + (err.message || "error"));
+        } finally {
+          setLoading(false);
+          // reset file inputs to allow re-upload of same file if needed
+          logoInput.value = "";
+          profileInput.value = "";
+          resumeInput.value = "";
+        }
+      });
+
+      // ===== DELETE =====
+      btnDelete.addEventListener("click", async () => {
+        if (!currentBanner) {
+          if (!confirm("No banner exists. Do you still want to send a delete request?")) return;
+        } else {
+          if (!confirm("This will delete the banner and all associated files from Cloudinary. This cannot be undone. Continue?")) return;
+        }
+
+        try {
+          setLoading(true, "Deleting...");
+          const res = await fetch(ENDPOINT, { method: "DELETE" });
+          if (!res.ok) {
+            const txt = await res.text().catch(()=>null);
+            throw new Error("Delete failed: " + res.status + " " + (txt || ""));
+          }
+          currentBanner = null;
+          clearPreviews();
+          nameInput.value = "";
+          descInput.value = "";
+          subDescInput.value = "";
+          linkInput.value = "";
+          resumeMeta.textContent = "No resume uploaded";
+          currentFiles.innerHTML = "<div class='small-muted'>No banner found in backend.</div>";
+          refreshLivePreview();
+          showToast("Banner deleted");
+        } catch (err) {
+          console.error(err);
+          showToast("Delete failed");
+        } finally {
+          setLoading(false);
+        }
+      });
+
+      // initial load
+      loadBanner();
+
+    })();
+  </script>
+</body>
+</html>
